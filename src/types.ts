@@ -11,5 +11,6 @@ export interface ITotals {
 export interface ISummary {
     label: string,
     duration: number,
-    checkInCount: number
+    checkInCount: number,
+    date: Date
 }

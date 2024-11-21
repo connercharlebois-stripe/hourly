@@ -51,7 +51,7 @@ export const getDurations = () => {
 
 const diffInMinutes = (date1: Date, date2: Date) => {
     const diffInMilliseconds = new Date(date2).getTime() - new Date(date1).getTime();
-    const diffInMinutes = Math.round(diffInMilliseconds * 100 / (1000 * 60));
+    const diffInMinutes = Math.round(diffInMilliseconds / (1000 * 60));
     return Math.abs(diffInMinutes)
 }
 
@@ -68,7 +68,8 @@ export const getTotals = () => {
                 totals.push({
                     label: c.label,
                     duration: c.duration,
-                    checkInCount: 1
+                    checkInCount: 1,
+                    date: c.time
                 })
             }
         }
