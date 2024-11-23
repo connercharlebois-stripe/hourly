@@ -1,5 +1,5 @@
 import { ICheckIn, ISummary, ITotals } from "./types"
-import { isOnSameDate } from "./util/dates"
+import { getEndOfWorkingDay, isOnSameDate } from "./util/dates"
 
 export const getCheckIns = (): ICheckIn[] => {
     const checkIns = window.localStorage.getItem("checkins")
@@ -60,13 +60,24 @@ export const storeCheckIns = (toSave: ICheckIn[]): void => {
 export const getDurations = (d?: Date) => {
     const checkIns = d ? getCheckInsOnDate(d) : getCheckIns();
     const sortedCheckIns = checkIns.sort((a, b) => a.time < b.time ? -1 : 1);
-    // for each checkin, it's duration is the minutes from it's time to the next one in the list, or NOW
+    // for each checkin, it's duration is the minutes from it's time to the next one in the list, or NOW, or EOD
     for (let i = 0; i < sortedCheckIns.length; i++) {
+        const eod = getEndOfWorkingDay(d);
         const next = sortedCheckIns[i + 1];
+        // if there isn't a next OR if the next is on the next day
         if (!next) {
-            sortedCheckIns[i].duration = diffInMinutes(sortedCheckIns[i].time, new Date())
+            if (new Date() > eod){
+                sortedCheckIns[i].duration = diffInMinutes(sortedCheckIns[i].time, eod)
+            } else {
+                sortedCheckIns[i].duration = diffInMinutes(sortedCheckIns[i].time, new Date())
+            }
         } else {
-            sortedCheckIns[i].duration = diffInMinutes(sortedCheckIns[i].time, next.time)
+            if (isOnSameDate(sortedCheckIns[i].time, next.time)){
+                sortedCheckIns[i].duration = diffInMinutes(sortedCheckIns[i].time, next.time)
+            } else {
+                sortedCheckIns[i].duration = diffInMinutes(sortedCheckIns[i].time, eod)
+            }
+            
         }
     }
     console.log(sortedCheckIns);
