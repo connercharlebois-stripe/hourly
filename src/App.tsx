@@ -6,6 +6,7 @@ import CheckInList from './components/CheckInList';
 import { deleteCheckIn, getCheckInsOnDate, getDurations, getTotals, saveCheckIn } from './storage';
 import { ICheckIn, ISummary } from './types';
 import { getBeginOfToday, isOnSameDate } from './util/dates';
+import Settings from './components/Settings';
 
 function App() {
   const [checkIns, setCheckIns] = useState<ICheckIn[]>()
@@ -35,10 +36,7 @@ function App() {
   }
 
   useEffect(() => {
-    const i = setInterval(() => {
-      handleGetDurations();
-      handleGetTotals();
-    }, 1000 * 60 * 5)
+    const i = setInterval(handleRefresh, 1000 * 60 * 5)
     const i2 = setInterval(() => {
       setActiveCheckIn(prev => {
         const n = new Notification("Time to Check In", {
@@ -53,36 +51,29 @@ function App() {
       clearInterval(i2);
     }
   }, [])
+  const handleRefresh = () => {
+    console.log(`updating durations at ${new Date().toTimeString()}`)
+    setCheckIns(getDurations(timeViewDay));
+    setTotals(getTotals(timeViewDay));
+  }
   const handleDelete = (id: number) => {
     deleteCheckIn(id);
     setCheckIns(getCheckInsOnDate(timeViewDay))
   }
-  const handleAskNotificationPermission = () => {
-    try {
-      Notification.requestPermission().then();
-    } catch (e) {
-      console.error("no permission")
-    }
-    console.log("permission!")
-  }
-  const handleShowNotification = () => {
-    const n = new Notification("Time to Check In", {
-      body: `Still working on ${activeCheckIn?.label}? (Dismiss to confirm)`
-    });
-  }
-  const handleGetDurations = () => {
-    console.log(`updating durations at ${new Date().toTimeString()}`)
-    setCheckIns(getDurations(timeViewDay));
-  }
+
+  // const handleGetDurations = () => {
+  //   console.log(`updating durations at ${new Date().toTimeString()}`)
+  //   setCheckIns(getDurations(timeViewDay));
+  // }
   const handleReCheckIn = (label: string) => {
     const tempCheckIn = { ...newCheckIn, isActive: true, time: new Date(), label }
     saveCheckIn(tempCheckIn);
     setActiveCheckIn(tempCheckIn)
     setCheckIns(getCheckInsOnDate(timeViewDay))
   }
-  const handleGetTotals = () => {
-    setTotals(getTotals(timeViewDay));
-  }
+  // const handleGetTotals = () => {
+  //   setTotals(getTotals(timeViewDay));
+  // }
   const handleChangeTimeViewDay = (forward: boolean) => {
     const start = timeViewDay;
     start?.setDate(start.getDate() + (forward ? 1 : -1));
@@ -138,7 +129,7 @@ function App() {
             }
           </Col>
           <Col sm={4}>
-            <h3>Totals <Button variant='link' onClick={handleGetTotals}><ArrowClockwise/></Button></h3>
+            <h3>Totals <Button variant='link' onClick={handleRefresh}><ArrowClockwise /></Button></h3>
             {totals &&
               <Table striped hover>
                 <thead>
@@ -182,28 +173,9 @@ function App() {
         <Offcanvas.Header closeButton><h2>Settings</h2></Offcanvas.Header>
         <Offcanvas.Body>
 
-          <h4>Notifications</h4>
-          <ListGroup>
-            <ListGroup.Item>
-              Request permissions to show notifications
-              <Button onClick={handleAskNotificationPermission}>Request Permissions</Button>
-            </ListGroup.Item>
-            <ListGroup.Item>
-              Show a test notification
-              <Button onClick={handleShowNotification}>Show Notification</Button>
-            </ListGroup.Item>
-          </ListGroup>
-          <h4 className='mt-3'>Debug</h4>
-          <ListGroup>
-            <ListGroup.Item>
-              Manually fetch durations
-              <Button onClick={handleGetDurations}>Durations</Button>
-            </ListGroup.Item>
-            <ListGroup.Item>
-              Manually fetch totals
-              <Button onClick={handleGetTotals}>Totals</Button>
-            </ListGroup.Item>
-          </ListGroup>
+          <Settings
+            onRefresh={handleRefresh}
+          />
 
 
 
