@@ -4,7 +4,7 @@ import { ArrowClockwise, Trash } from "react-bootstrap-icons";
 
 type Props = {
     checkIn: ICheckIn,
-    onDelete: (n: number) => void,
+    onDelete: (c: ICheckIn) => void,
     onReCheckIn: (s: string) => void
 }
 const CheckInListItem = (props: Props) => {
@@ -32,7 +32,7 @@ const CheckInListItem = (props: Props) => {
                 </Col>
                 <Col sm={3}>
                     <ButtonGroup>
-                        <Button variant='danger' onClick={() => props.onDelete(c.id)}><Trash /></Button>
+                        <Button variant='danger' onClick={() => props.onDelete(c)}><Trash /></Button>
                         {!c.isActive &&
                             <Button variant="secondary" onClick={() => props.onReCheckIn(c.label)}><ArrowClockwise /></Button>
                         }

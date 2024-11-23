@@ -8,6 +8,7 @@ import { ICheckIn, ISummary } from './types';
 import { getBeginOfToday, isOnSameDate } from './util/dates';
 import Settings from './components/SettingsView';
 import SettingsView from './components/SettingsView';
+import customConfirm from './util/customConfirm';
 
 function App() {
   const [checkIns, setCheckIns] = useState<ICheckIn[]>()
@@ -57,9 +58,11 @@ function App() {
     setCheckIns(getDurations(timeViewDay));
     setTotals(getTotals(timeViewDay));
   }
-  const handleDelete = (id: number) => {
-    deleteCheckIn(id);
-    setCheckIns(getCheckInsOnDate(timeViewDay))
+  const handleDelete = (c: ICheckIn) => {
+    customConfirm(`delete this ${c.duration}min check-in for ${c.label}`, () => {
+      deleteCheckIn(c.id);
+      setCheckIns(getCheckInsOnDate(timeViewDay))
+    })
   }
 
   // const handleGetDurations = () => {

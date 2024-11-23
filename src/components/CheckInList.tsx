@@ -3,7 +3,7 @@ import CheckInListItem from "./CheckInListItem"
 
 interface Props {
     checkIns: ICheckIn[],
-    onDelete: (n: number) => void,
+    onDelete: (c: ICheckIn) => void,
     onReCheckIn: (s: string) => void
 }
 
