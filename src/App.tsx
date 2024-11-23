@@ -6,7 +6,8 @@ import CheckInList from './components/CheckInList';
 import { deleteCheckIn, getCheckInsOnDate, getDurations, getTotals, saveCheckIn } from './storage';
 import { ICheckIn, ISummary } from './types';
 import { getBeginOfToday, isOnSameDate } from './util/dates';
-import Settings from './components/Settings';
+import Settings from './components/SettingsView';
+import SettingsView from './components/SettingsView';
 
 function App() {
   const [checkIns, setCheckIns] = useState<ICheckIn[]>()
@@ -173,7 +174,7 @@ function App() {
         <Offcanvas.Header closeButton><h2>Settings</h2></Offcanvas.Header>
         <Offcanvas.Body>
 
-          <Settings
+          <SettingsView
             onRefresh={handleRefresh}
           />
 

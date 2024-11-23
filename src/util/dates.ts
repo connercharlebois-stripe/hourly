@@ -1,3 +1,5 @@
+import { Settings } from "../api/Settings";
+
 export const isOnSameDate = (c: Date, d: Date): boolean => {
     if (!c || !d) {
         return false
@@ -16,8 +18,14 @@ export const getBeginOfToday = () : Date => {
 
 export const getEndOfWorkingDay = (d?: Date) : Date => {
     const date = d ? new Date(d) : new Date();
-    date.setHours(17);
-    date.setMinutes(0);
+    const settings = Settings.get();
+    if (settings){
+        date.setHours(settings.workingDayEnd.hh);
+        date.setMinutes(settings.workingDayEnd.mm);
+    } else {
+        date.setHours(0);
+        date.setMinutes(0);
+    }
     date.setSeconds(0);
     date.setMilliseconds(0);
     return date;

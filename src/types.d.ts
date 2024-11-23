@@ -14,3 +14,10 @@ export interface ISummary {
     checkInCount: number,
     date: Date
 }
+export interface IUserSettings {
+    workingDayEnd: {
+        raw: string,
+        hh: number,
+        mm: number
+    }
+}
