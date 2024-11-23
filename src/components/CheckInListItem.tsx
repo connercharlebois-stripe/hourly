@@ -21,8 +21,9 @@ const CheckInListItem = (props: Props) => {
                     <Card.Title className="d-flex justify-content-between">
                         {c.label}
 
-                        {c.duration && c.duration > 0 &&
+                        {c.duration && c.duration > 0 ?
                             <Badge bg="primary">{c.duration} min</Badge>
+                            : null
                         }
                     </Card.Title>
                     <Card.Text className="text-muted small">

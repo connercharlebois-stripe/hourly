@@ -1,9 +1,15 @@
 import { ICheckIn, ISummary, ITotals } from "./types"
+import { isOnSameDate } from "./util/dates"
 
 export const getCheckIns = (): ICheckIn[] => {
     const checkIns = window.localStorage.getItem("checkins")
     //@ts-ignore
     return JSON.parse(checkIns) || []
+}
+
+export const getCheckInsOnDate = (d: Date): ICheckIn[] => {
+    const all = getCheckIns();
+    return all.filter(c => isOnSameDate(new Date(c.time), d));
 }
 
 export const saveCheckIn = (checkIn: ICheckIn): void => {
@@ -28,12 +34,31 @@ export const saveCheckIn = (checkIn: ICheckIn): void => {
     window.localStorage.setItem("checkins", JSON.stringify(sortedCheckIns))
 }
 
-export const storeCheckIns = (all: ICheckIn[]): void => {
+export const deleteCheckIn = (id: number) => {
+    const all = getCheckIns();
+    const i = all.findIndex(c => c.id === id);
+    const updatedList = [...all.slice(0,i), ...all.slice(i+1)]
+    window.localStorage.setItem("checkins", JSON.stringify(updatedList))
+
+}
+
+export const storeCheckIns = (toSave: ICheckIn[]): void => {
+    console.log(`Storing ${toSave.length} checkins`)
+    const all = getCheckIns();
+    for (const c of toSave) {
+        const index = all.findIndex(a => a.id === c.id);
+        if (index > -1) {
+            all[index].duration = c.duration;
+        } else {
+            all.push(c);
+        }
+    }
+    console.log(`all.length is ${all.length} checkins`)
     window.localStorage.setItem("checkins", JSON.stringify([...all]))
 }
 
-export const getDurations = () => {
-    const checkIns = getCheckIns();
+export const getDurations = (d?: Date) => {
+    const checkIns = d ? getCheckInsOnDate(d) : getCheckIns();
     const sortedCheckIns = checkIns.sort((a, b) => a.time < b.time ? -1 : 1);
     // for each checkin, it's duration is the minutes from it's time to the next one in the list, or NOW
     for (let i = 0; i < sortedCheckIns.length; i++) {
@@ -55,11 +80,11 @@ const diffInMinutes = (date1: Date, date2: Date) => {
     return Math.abs(diffInMinutes)
 }
 
-export const getTotals = () => {
-    const checkIns = getCheckIns();
-    const totals : ISummary[] = [];
+export const getTotals = (d?: Date) => {
+    const checkIns = d ? getCheckInsOnDate(d) : getCheckIns();
+    const totals: ISummary[] = [];
     checkIns.forEach(c => {
-        if (c.duration){
+        if (c.duration) {
             const match = totals.find(t => t.label === c.label);
             if (match) {
                 match.duration += c.duration;
