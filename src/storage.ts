@@ -7,6 +7,16 @@ export const getCheckIns = (): ICheckIn[] => {
     return JSON.parse(checkIns) || []
 }
 
+export const getDistinctCheckIns = (): ICheckIn[] => {
+    const checkInsStr = window.localStorage.getItem("checkins")
+    //@ts-ignore
+    const checkIns : ICheckIn[] = JSON.parse(checkInsStr);
+    const distinctChecks = checkIns.sort((a,b) => new Date(b.time) > new Date(a.time) ? 1 : -1).filter((item, index) => checkIns.findIndex(c => c.label === item.label) === index);
+    console.log({distinctChecks})
+    return distinctChecks;
+
+}
+
 export const getCheckInsOnDate = (d: Date): ICheckIn[] => {
     const all = getCheckIns();
     return all.filter(c => isOnSameDate(new Date(c.time), d));

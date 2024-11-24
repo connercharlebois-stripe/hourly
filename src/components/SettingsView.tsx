@@ -28,6 +28,9 @@ const SettingsView = (props: Props) => {
         const n = new Notification("Time to Check In", {
             body: `Hurrah! It's working!`
         });
+        n.onclick=()=>{
+            console.log("clicked!")
+          }
     }
     const handleSaveSettings = async () => {
         if (settings) {

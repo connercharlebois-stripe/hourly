@@ -9,7 +9,7 @@ type Props = {
 }
 const CheckInListItem = (props: Props) => {
     const c = props.checkIn;
-    return <Card key={c.id} className={`mb-3 ${c.isActive?"bg-success-subtle":""}`}>
+    return <Card key={c.id} className={`mb-3 ${c.isActive ? "bg-success-subtle" : ""}`}>
         {c.isActive &&
             <Card.Header className="bg-success-subtle">
                 <Badge bg="success">Active</Badge>
@@ -17,18 +17,34 @@ const CheckInListItem = (props: Props) => {
         }
         <Card.Body>
             <Row>
-                <Col sm={9}>
-                    <Card.Title className="d-flex justify-content-between">
-                        {c.label}
+                <Col sm={9} className="d-flex align-items-center justify-content-between">
+                    <Card.Title className="d-flex mb-0">
+                        <div className="d-flex align-items-center">
+                            <div className="me-3">
+                                {c.label}
+                            </div>
+                            <div>
+                            <span className="text-secondary fs-6">
+                                    {new Date(c.time).toLocaleTimeString()}
+                                </span>
+                            </div>
 
-                        {c.duration && c.duration > 0 ?
-                            <Badge bg="primary">{c.duration} min</Badge>
-                            : null
-                        }
+
+                        </div>
+
+
+
                     </Card.Title>
-                    <Card.Text className="text-muted small">
-                    since {new Date(c.time).toLocaleTimeString()}
-                    </Card.Text>
+                    {c.duration && c.duration > 0 ?
+                        <Card.Title className="mb-0">
+                            {/* <span className="text-secondary fs-6">
+                                    {new Date(c.time).toLocaleTimeString()}
+                                </span> */}
+                            <Badge className="ms-3" bg="primary">{c.duration} min</Badge>
+                        </Card.Title>
+
+                        : null
+                    }
                 </Col>
                 <Col sm={3}>
                     <ButtonGroup>

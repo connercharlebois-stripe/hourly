@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Button, ButtonGroup, Col, Container, Form, InputGroup, ListGroup, Offcanvas, Row, Table } from 'react-bootstrap';
 import { ArrowClockwise, ChevronDoubleLeft, ChevronDoubleRight, GearFill } from 'react-bootstrap-icons';
 import './App.css';
 import CheckInList from './components/CheckInList';
-import { deleteCheckIn, getCheckInsOnDate, getDurations, getTotals, saveCheckIn } from './storage';
+import { deleteCheckIn, getCheckIns, getCheckInsOnDate, getDistinctCheckIns, getDurations, getTotals, saveCheckIn } from './storage';
 import { ICheckIn, ISummary } from './types';
 import { getBeginOfToday, isOnSameDate } from './util/dates';
 import Settings from './components/SettingsView';
 import SettingsView from './components/SettingsView';
 import customConfirm from './util/customConfirm';
+import { Typeahead } from 'react-bootstrap-typeahead';
 
 function App() {
   const [checkIns, setCheckIns] = useState<ICheckIn[]>()
@@ -22,8 +23,11 @@ function App() {
   const [totals, setTotals] = useState<ISummary[]>();
   const [timeViewDay, setTimeViewDay] = useState<Date>(getBeginOfToday());
   const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [allCheckIns, setAllCheckIns] = useState<ICheckIn[]>();
+  const typeaheadRef = useRef(null);
   useEffect(() => {
     setCheckIns(getCheckInsOnDate(timeViewDay))
+    setAllCheckIns(getDistinctCheckIns());
   }, [])
   const handleSave = async () => {
     saveCheckIn({ ...newCheckIn, isActive: true, time: new Date() });
@@ -35,6 +39,7 @@ function App() {
     })
     setCheckIns(getCheckInsOnDate(timeViewDay))
     setActiveCheckIn(newCheckIn);
+    setAllCheckIns(getDistinctCheckIns());
   }
 
   useEffect(() => {
@@ -42,8 +47,13 @@ function App() {
     const i2 = setInterval(() => {
       setActiveCheckIn(prev => {
         const n = new Notification("Time to Check In", {
-          body: `Still working on ${prev?.label}? (Dismiss to confirm)`
+          body: `Still working on ${prev?.label}? (Dismiss to confirm)`,
         });
+        n.onclick=()=>{
+          console.log("clicked");
+          //@ts-ignore
+          typeaheadRef.current?.focus();
+        }
         return prev;
       })
       // handleShowNotification();
@@ -87,6 +97,11 @@ function App() {
       setCheckIns(getCheckInsOnDate(d))
     }
   }
+  const handleChangeViewDayToToday = () => {
+    const d = new Date();
+    setTimeViewDay(d);
+    setCheckIns(getCheckInsOnDate(d))
+  }
   const minutesToNearestHalfHours = (min: number): number => {
     return Math.ceil(min / 30) * .5
   }
@@ -94,15 +109,38 @@ function App() {
   return (
     <div className="App">
       {/* <header className="App-header"> */}
-      <Container>
+      <Container className='mt-3'>
         <Row>
           <Col sm={12}>
             <Alert variant='light'>
               <h2>What are you working on?</h2>
               <ListGroup.Item>
                 <InputGroup>
-                  <Form.Control value={newCheckIn?.label} onChange={(e) => setNewCheckIn({ ...newCheckIn, label: e.target.value })} />
-                  <Button onClick={handleSave}>Save</Button>
+                  <Typeahead
+                    className='flex-grow-1'
+                    id="checkin-options"
+                    selected={[newCheckIn]}
+                    options={allCheckIns ?? []}
+                    labelKey={"label"}
+                    onChange={(selected) => {
+                      if (selected.length < 1){
+                        return
+                      }
+                      console.log({selected})
+                      //@ts-ignore
+                      setNewCheckIn({ ...newCheckIn, label: selected[0].label })
+                    }}
+                    allowNew
+                    newSelectionPrefix="Add new: "
+                    onInputChange={(text) => {
+                      setNewCheckIn({ ...newCheckIn, label: text })
+                    }}
+                    size="lg"
+                    ref={typeaheadRef}
+                    maxResults={3}
+                   />
+                  {/* <Form.Control value={newCheckIn?.label} onChange={(e) => setNewCheckIn({ ...newCheckIn, label: e.target.value })} /> */}
+                  <Button size="lg" onClick={handleSave}>Save</Button>
                 </InputGroup>
               </ListGroup.Item>
             </Alert>
@@ -113,7 +151,7 @@ function App() {
 
             <ButtonGroup>
               <Button onClick={() => handleChangeTimeViewDay(false)}><ChevronDoubleLeft /></Button>
-              <Button>
+              <Button onClick={handleChangeViewDayToToday}>
                 {timeViewDay?.toDateString()}
               </Button>
               <Button onClick={() => handleChangeTimeViewDay(true)}><ChevronDoubleRight /></Button>
@@ -121,7 +159,7 @@ function App() {
             <Button onClick={toggleSettings}><GearFill /> Settings</Button>
           </Col>
         </Row>
-        <Row>
+        <Row className='mt-3'>
           <Col sm={8}>
             <h3>Check Ins</h3>
             {checkIns &&
@@ -148,7 +186,7 @@ function App() {
                     <tr key={t.label}>
                       <td>{t.label}</td>
                       <td>{t.checkInCount}</td>
-                      <td>{minutesToNearestHalfHours(t.duration)} h<br /><span className='text-muted small'>({t.duration} minutes)</span></td>
+                      <td>{minutesToNearestHalfHours(t.duration)} h<br /><span className='text-secondary small'>({t.duration} minutes)</span></td>
                     </tr>
                   )}
 
@@ -159,7 +197,7 @@ function App() {
                     <td></td>
                     <td>{checkIns?.map(c => minutesToNearestHalfHours(c.duration!)).reduce((prev, curr) => prev! + curr!, 0)}
                       <br />
-                      <span className='text-muted small'>({minutesToNearestHalfHours(checkIns?.map(c => c.duration!).reduce((prev, curr) => prev + curr, 0)!)} actual)</span></td>
+                      <span className='text-secondary small'>({minutesToNearestHalfHours(checkIns?.map(c => c.duration!).reduce((prev, curr) => prev + curr, 0)!)} actual)</span></td>
                   </tr>
                 </tfoot>
               </Table>
