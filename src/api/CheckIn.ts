@@ -41,6 +41,9 @@ const create = (checkIn: ICheckIn): void => {
         maxId = checkIns.reduce((prev, curr) => curr.id > prev.id ? curr : prev).id;
         console.log({ maxId })
     }
+    checkIns.forEach(c => {
+        c.isActive = false
+    })
     const newCheckIns = [...checkIns, { ...checkIn, id: maxId + 1 }]
     window.localStorage.setItem(LS_KEY_CHECKINS, JSON.stringify(newCheckIns))
 }
