@@ -30,3 +30,9 @@ export const getEndOfWorkingDay = (d?: Date) : Date => {
     date.setMilliseconds(0);
     return date;
 }
+
+export const diffInMinutes = (date1: Date, date2: Date) => {
+    const diffInMilliseconds = new Date(date2).getTime() - new Date(date1).getTime();
+    const diffInMinutes = Math.round(diffInMilliseconds / (1000 * 60));
+    return Math.abs(diffInMinutes)
+}

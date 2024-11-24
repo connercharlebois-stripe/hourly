@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Button, ButtonGroup, Col, Container, Form, InputGroup, ListGroup, Offcanvas, Row, Table } from 'react-bootstrap';
+import { Alert, Button, ButtonGroup, Col, Container, InputGroup, ListGroup, Offcanvas, Row, Table } from 'react-bootstrap';
 import { ArrowClockwise, ChevronDoubleLeft, ChevronDoubleRight, GearFill } from 'react-bootstrap-icons';
+import { Typeahead } from 'react-bootstrap-typeahead';
+import CheckIn from './api/CheckIn';
 import './App.css';
 import CheckInList from './components/CheckInList';
-import { deleteCheckIn, getCheckIns, getCheckInsOnDate, getDistinctCheckIns, getDurations, getTotals, saveCheckIn } from './storage';
-import { ICheckIn, ISummary } from './types';
-import { getBeginOfToday, isOnSameDate } from './util/dates';
-import Settings from './components/SettingsView';
 import SettingsView from './components/SettingsView';
+import { getDurations, getTotals } from './storage';
+import { ICheckIn, ISummary } from './types';
 import customConfirm from './util/customConfirm';
-import { Typeahead } from 'react-bootstrap-typeahead';
+import { getBeginOfToday, isOnSameDate } from './util/dates';
 
 function App() {
   const [checkIns, setCheckIns] = useState<ICheckIn[]>()
@@ -26,20 +26,20 @@ function App() {
   const [allCheckIns, setAllCheckIns] = useState<ICheckIn[]>();
   const typeaheadRef = useRef(null);
   useEffect(() => {
-    setCheckIns(getCheckInsOnDate(timeViewDay))
-    setAllCheckIns(getDistinctCheckIns());
+    setCheckIns(CheckIn.get.onDate(timeViewDay))
+    setAllCheckIns(CheckIn.get.distinct());
   }, [])
   const handleSave = async () => {
-    saveCheckIn({ ...newCheckIn, isActive: true, time: new Date() });
+    CheckIn.create({ ...newCheckIn, isActive: true, time: new Date() });
     setNewCheckIn({
       id: 1,
       label: "",
       time: new Date(),
       isActive: false
     })
-    setCheckIns(getCheckInsOnDate(timeViewDay))
+    setCheckIns(CheckIn.get.onDate(timeViewDay))
     setActiveCheckIn(newCheckIn);
-    setAllCheckIns(getDistinctCheckIns());
+    setAllCheckIns(CheckIn.get.distinct());
   }
 
   useEffect(() => {
@@ -49,7 +49,7 @@ function App() {
         const n = new Notification("Time to Check In", {
           body: `Still working on ${prev?.label}? (Dismiss to confirm)`,
         });
-        n.onclick=()=>{
+        n.onclick = () => {
           console.log("clicked");
           //@ts-ignore
           typeaheadRef.current?.focus();
@@ -70,8 +70,8 @@ function App() {
   }
   const handleDelete = (c: ICheckIn) => {
     customConfirm(`delete this ${c.duration}min check-in for ${c.label}`, () => {
-      deleteCheckIn(c.id);
-      setCheckIns(getCheckInsOnDate(timeViewDay))
+      CheckIn.del(c.id);
+      setCheckIns(CheckIn.get.onDate(timeViewDay))
     })
   }
 
@@ -81,9 +81,9 @@ function App() {
   // }
   const handleReCheckIn = (label: string) => {
     const tempCheckIn = { ...newCheckIn, isActive: true, time: new Date(), label }
-    saveCheckIn(tempCheckIn);
+    CheckIn.create(tempCheckIn);
     setActiveCheckIn(tempCheckIn)
-    setCheckIns(getCheckInsOnDate(timeViewDay))
+    setCheckIns(CheckIn.get.onDate(timeViewDay))
   }
   // const handleGetTotals = () => {
   //   setTotals(getTotals(timeViewDay));
@@ -94,13 +94,13 @@ function App() {
     const d = new Date(start);
     if (start) {
       setTimeViewDay(d);
-      setCheckIns(getCheckInsOnDate(d))
+      setCheckIns(CheckIn.get.onDate(d))
     }
   }
   const handleChangeViewDayToToday = () => {
     const d = new Date();
     setTimeViewDay(d);
-    setCheckIns(getCheckInsOnDate(d))
+    setCheckIns(CheckIn.get.onDate(d))
   }
   const minutesToNearestHalfHours = (min: number): number => {
     return Math.ceil(min / 30) * .5
@@ -123,10 +123,10 @@ function App() {
                     options={allCheckIns ?? []}
                     labelKey={"label"}
                     onChange={(selected) => {
-                      if (selected.length < 1){
+                      if (selected.length < 1) {
                         return
                       }
-                      console.log({selected})
+                      console.log({ selected })
                       //@ts-ignore
                       setNewCheckIn({ ...newCheckIn, label: selected[0].label })
                     }}
@@ -138,7 +138,7 @@ function App() {
                     size="lg"
                     ref={typeaheadRef}
                     maxResults={3}
-                   />
+                  />
                   {/* <Form.Control value={newCheckIn?.label} onChange={(e) => setNewCheckIn({ ...newCheckIn, label: e.target.value })} /> */}
                   <Button size="lg" onClick={handleSave}>Save</Button>
                 </InputGroup>
